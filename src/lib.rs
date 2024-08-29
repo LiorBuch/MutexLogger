@@ -23,10 +23,17 @@ mod tests {
     }
     #[test]
     fn can_rewrite_logs(){
-        let logger = Logger::init(Verbosity::Warn, 100);
-        logger.log("this is error!", Verbosity::Error).unwrap();
-        logger.log("this is info! it will not show!", Verbosity::Info).unwrap();
+        let logger = Logger::init(Verbosity::Debug, 3);
+        logger.log("this is error! and it will be deleted!", Verbosity::Error).unwrap();
+        logger.log("this is info! it will show!", Verbosity::Info).unwrap();
+        logger.log("this is warning! it will show!", Verbosity::Warn).unwrap();
+        logger.log("this is error2! it will show!", Verbosity::Error).unwrap();
         println!("{}",logger.get_size().unwrap());
+        let logs = logger.get_log(Verbosity::Debug).unwrap();
+        for log in logs {
+            println!("msg: {} , code: {}",log.1,log.0);
+        }
+
         assert_eq!(1,1);
     }
 

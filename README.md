@@ -1,7 +1,7 @@
 Mutex Logger
 ======
 
-A logger crate that wraped with mutex guard to allow logging from multithreading.
+A logger crate that uses mutex guards to allow logging in multithreading to prevent data racing.
 
 ## Example
 
