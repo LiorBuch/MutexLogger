@@ -5,7 +5,7 @@ use std::{
 };
 
 /// `Verbosity` is the enum that declares the scope of each log.   
-/// Dont use [`Verbosity::Silent`] as a log condition.
+/// Don't use [`Verbosity::Silent`] as a log condition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Verbosity {
     Silent,
@@ -25,57 +25,59 @@ impl Display for Verbosity {
         }
     }
 }
-/// `Logger` is a struct to control the logging logic and hold the logs.
+/// `MLogger` is a struct to control the logging logic and hold the logs.
 ///
-/// # Params
-/// @verbosity -> Controls the logger print logic, it will print only if the verbosity of the log is in the threshold.   
-/// The treshold is defined by the Enum [`Verbosity`].   
-/// @max_size:`usize` -> Controls the maximum amount of logs that can exist in the instance, will push out old logs above that limit.   
-/// @pool:`VecDeque<(u32,String,Verbosity)` -> Mutex controled 2-Way queue that holds all the logs.   
-/// @counter:`u32` -> counts the log id, each log in a session gets a counted id, so index 1 does not implies id == 1.
+/// # Parameters
+/// - `verbosity`: Controls the logger print logic; it will print only if the verbosity of the log is within the threshold.   
+///   The threshold is defined by the Enum [`Verbosity`].   
+/// - `max_size: usize`: Controls the maximum number of logs that can exist in the instance; will push out old logs above that limit.   
+/// - `pool: VecDeque<(u32, String, Verbosity)>`: Mutex-controlled double-ended queue that holds all the logs.   
+/// - `counter: u32`: Counts the log ID; each log in a session gets a counted ID, so index 1 does not imply id == 1.
 ///
 /// # Log Entry
-/// A log entry is a tuple of(u32,String,Verbosity),where:   
-/// @u32 -> Is for the counted id, assigned automaticaly.   
-/// @String -> Is for the Log message itself.   
-/// @Verbosity -> Sets the [`Verbosity`] level of the log.
+/// A log entry is a tuple of `(u32, String, Verbosity)`, where:   
+/// - `u32`: The counted ID, assigned automatically.   
+/// - `String`: The log message itself.   
+/// - `Verbosity`: Sets the [`Verbosity`] level of the log.
 ///
 /// # Initialization
-/// To get a Logger instance call [`Logger::init_default()`] or [`Logger::init()`] to control the verbosity level and max pool size.
-pub struct Logger {
+/// To get a `MLogger` instance, call [`MLogger::init_default()`] or [`MLogger::init()`] to control the verbosity level and maximum pool size.
+pub struct MLogger {
     verbosity: Verbosity,
     max_size: usize,
     pool: Arc<Mutex<VecDeque<(u32, String, Verbosity)>>>,
     counter: Arc<Mutex<u32>>,
 }
-impl Logger {
-    /// This method will create a [`Logger`] instance by its default values `1000` for the pool and [`Verbosity::Debug`] for verbosity.
-    pub fn init_default() -> Logger {
-        return Logger {
+impl MLogger {
+    /// This method will create a [`MLogger`] instance by its default values `1000` for the pool and [`Verbosity::Debug`] for verbosity.
+    pub fn init_default() -> MLogger {
+        return MLogger {
             verbosity: Verbosity::Debug,
             max_size: 1000,
             pool: Arc::new(Mutex::new(VecDeque::new())),
             counter: Arc::new(Mutex::new(0)),
         };
     }
-    /// This method will create a [`Logger`] instance but will allow you to control the pool size and verbosity level.
+    /// Creates a [`MLogger`] instance, allowing control over the pool size and verbosity level.
     ///
-    /// @verbosity:`Verbosity` -> Sets the Logger verbosity level.   
-    /// @max_size:`usize` -> Sets the maximum amount of logs unstill the logger will push out old logs.
-    pub fn init(verbosity: Verbosity, max_size: usize) -> Logger {
-        return Logger {
+    /// # Param
+    /// - `verbosity: Verbosity`: Sets the `MLogger` verbosity level.   
+    /// - `max_size: usize`: Sets the maximum number of logs until the logger will push out old logs.
+    pub fn init(verbosity: Verbosity, max_size: usize) -> MLogger {
+        return MLogger {
             verbosity: verbosity,
             max_size: max_size,
             pool: Arc::new(Mutex::new(VecDeque::new())),
             counter: Arc::new(Mutex::new(0)),
         };
     }
-    /// Call this method to insert a log to the Logger, it will print if the verbosity predicator match.
+    /// Inserts a log into the MLogger; it will print if the verbosity predicate matches.
     ///
-    /// @log:`&str` -> The message to be logged.   
-    /// @verbosity:`Verbosity` -> The message verbosity level. It will effect the appearnce of the message.
+    /// # Param
+    /// - `log: &str`: The message to be logged.   
+    /// - `verbosity: Verbosity`: The message verbosity level; it will affect the appearance of the message.
     ///
-    /// Returns -> String with error or void on sucess.
+    /// Returns a `Result` with an error message as a `String` or `()` on success.
     pub fn log(&self, log: &str, verbosity: Verbosity) -> Result<(), String> {
         let mut pool = self
             .pool
@@ -96,12 +98,13 @@ impl Logger {
         *counter += 1;
         Ok(())
     }
-    /// Call this method to get an entry out of the logger.   
-    /// *Note that index means the recenty of a log, if a log gets pushed out, its gone...*
+    /// Retrieves an entry from the logger.   
+    /// *Note that index indicates the recency of a log; if a log gets pushed out, it is gone...*
     ///
-    /// @index:`usize` -> The log index in the pool.
+    /// # Param
+    /// - `index: usize`: The log index in the pool.
     ///
-    /// Returns -> `String` with error, the log entry tuple on sucess.
+    /// Returns a `Result` with an error message as a `String` or the log entry tuple on success.
     pub fn get_entry(&self, index: usize) -> Result<(u32, String, Verbosity), String> {
         let pool = self
             .pool
@@ -111,9 +114,9 @@ impl Logger {
             .cloned()
             .ok_or_else(|| "index out of bounds".to_string())
     }
-    /// Call this to get the current size of the pool.
+    /// Retrieves the current size of the pool.
     ///
-    /// Returns -> `String` with error or the size:`usize` on sucess.
+    /// Returns a `Result` with an error message as a `String` or the size (`usize`) on success.
     pub fn get_size(&self) -> Result<usize, String> {
         let pool = self
             .pool
@@ -121,12 +124,13 @@ impl Logger {
             .map_err(|_| "pool lock failed".to_string())?;
         Ok(pool.len())
     }
-    /// Call this method to get all entries out of the logger with a filter.   
-    /// *Use filter=[`Verbosity::Debug`] to get all the logs.*
+    /// Retrieves all entries from the logger with a filter.   
+    /// *Use `filter=[Verbosity::Debug]` to get all the logs.*
     ///
-    /// @filter:`Verbosity` -> The predicator to limit the scope of the logs.
+    /// # Param
+    /// - `filter: Verbosity`: The predicate to limit the scope of the logs.
     ///
-    /// Returns -> `String` with error,all the log entries that match the predicator on sucess.
+    /// Returns a `Result` with an error message as a `String` or all the log entries that match the predicate on success.
     pub fn get_log(&self, filter: Verbosity) -> Result<Vec<(u32, String, Verbosity)>, String> {
         let pool = self
             .pool
@@ -136,14 +140,15 @@ impl Logger {
             pool.iter().filter(|log| log.2 <= filter).cloned().collect();
         Ok(filtered_logs)
     }
-    /// Call this method to get a slice from the logs.
+    /// Retrieves a slice from the logs.
     /// *Can fail if indices are incorrect.*
     ///
-    /// @start_index:`usize` -> The start index of the slice.   
-    /// @end_index:`usize` -> The start index of the slice.   
-    /// @filter:`Verbosity` -> The predicator to limit the scope of the logs.
+    /// # Param
+    /// - `start_index: usize`: The start index of the slice.   
+    /// - `end_index: usize`: The end index of the slice.   
+    /// - `filter: Verbosity`: The predicate to limit the scope of the logs.
     ///
-    /// Returns -> `String` with error, the log entries slice on sucess.
+    /// Returns a `Result` with an error message as a `String` or the log entries slice on success.
     pub fn get_entries(
         &self,
         start_index: usize,
@@ -161,9 +166,9 @@ impl Logger {
             .collect();
         Ok(sub_pool)
     }
-    /// Call this method to print all the log.
+    /// Prints all the logs.
     ///
-    /// Returns -> `String` with error, void on sucess.
+    /// Returns a `Result` with an error message as a `String` or `()` on success.
     pub fn print_log(&self) -> Result<(), String> {
         let pool = self
             .pool
@@ -174,11 +179,12 @@ impl Logger {
         }
         Ok(())
     }
-    /// Call this method to print spesific log level.
+    /// Prints specific log levels.
     ///
-    /// @predicator:`Verbosity` -> The predicator to limit the scope of the logs.
+    /// # Param
+    /// - `predicate: Verbosity`: The predicate to limit the scope of the logs.
     ///
-    /// Returns -> `String` with error, void on sucess.
+    /// Returns a `Result` with an error message as a `String` or `()` on success.
     pub fn print_log_level(&self, predicator: Verbosity) -> Result<(), String> {
         let pool = self
             .pool

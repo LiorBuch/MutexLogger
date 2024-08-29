@@ -2,12 +2,12 @@ pub mod logger;
 
 #[cfg(test)]
 mod tests {
-    use crate::logger::Logger;
+    use crate::logger::MLogger;
     use crate::logger::Verbosity;
 
     #[test]
     fn can_print_logs(){
-        let logger = Logger::init_default();
+        let logger = MLogger::init_default();
         logger.log("this is error!", Verbosity::Error).unwrap();
         logger.log("this is info!", Verbosity::Info).unwrap();
         println!("{}",logger.get_size().unwrap());
@@ -15,7 +15,7 @@ mod tests {
     }
     #[test]
     fn can_print_verbos_logs(){
-        let logger = Logger::init(Verbosity::Warn, 100);
+        let logger = MLogger::init(Verbosity::Warn, 100);
         logger.log("this is error!", Verbosity::Error).unwrap();
         logger.log("this is info! it will not show!", Verbosity::Info).unwrap();
         println!("{}",logger.get_size().unwrap());
@@ -23,7 +23,7 @@ mod tests {
     }
     #[test]
     fn can_rewrite_logs(){
-        let logger = Logger::init(Verbosity::Debug, 3);
+        let logger = MLogger::init(Verbosity::Debug, 3);
         logger.log("this is error! and it will be deleted!", Verbosity::Error).unwrap();
         logger.log("this is info! it will show!", Verbosity::Info).unwrap();
         logger.log("this is warning! it will show!", Verbosity::Warn).unwrap();
@@ -38,7 +38,7 @@ mod tests {
     }
     #[test]
     fn prints_logs_correctly(){
-        let logger = Logger::init(Verbosity::Warn, 100);
+        let logger = MLogger::init(Verbosity::Warn, 100);
         logger.log("this is error!", Verbosity::Error).unwrap();
         logger.log("this is info! it will not show!", Verbosity::Info).unwrap();
         logger.log("this is error! and it will be deleted!", Verbosity::Error).unwrap();
