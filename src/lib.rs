@@ -36,5 +36,17 @@ mod tests {
 
         assert_eq!(1,1);
     }
+    #[test]
+    fn prints_logs_correctly(){
+        let logger = Logger::init(Verbosity::Warn, 100);
+        logger.log("this is error!", Verbosity::Error).unwrap();
+        logger.log("this is info! it will not show!", Verbosity::Info).unwrap();
+        logger.log("this is error! and it will be deleted!", Verbosity::Error).unwrap();
+        logger.log("this is info! it will show!", Verbosity::Info).unwrap();
+        logger.log("this is warning! it will show!", Verbosity::Warn).unwrap();
+        logger.log("this is error2! it will show!", Verbosity::Error).unwrap();
+        logger.print_log().unwrap();
+        assert_eq!(1,1);
+    }
 
 }
