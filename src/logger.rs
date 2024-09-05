@@ -4,6 +4,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use colored::Colorize;
+
 /// `Verbosity` is the enum that declares the scope of each log.   
 /// Don't use [`Verbosity::Silent`] as a log condition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -22,6 +24,17 @@ impl Display for Verbosity {
             Verbosity::Warn => write!(f, "Warn"),
             Verbosity::Info => write!(f, "Info"),
             Verbosity::Debug => write!(f, "Debug"),
+        }
+    }
+}
+impl Verbosity {
+    pub fn color(&self)-> String{
+        match self {
+            Verbosity::Silent => return self.to_string(),
+            Verbosity::Error => return self.to_string().red().to_string(),
+            Verbosity::Warn => return self.to_string().yellow().to_string(),
+            Verbosity::Info => return self.to_string(),
+            Verbosity::Debug => return self.to_string().green().to_string(),
         }
     }
 }
@@ -89,7 +102,7 @@ impl MLogger {
             .map_err(|_| "counter lock failed!".to_string())?;
         let log_entry = (*counter, log.to_string(), verbosity);
         if log_entry.2 <= self.verbosity {
-            println!("{}", log_entry.1.clone());
+            println!("-{}-  {}, {}",log_entry.0,log_entry.2.color() ,log_entry.1.clone());
         }
         pool.push_front(log_entry);
         if pool.len() > self.max_size {
