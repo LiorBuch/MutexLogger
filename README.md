@@ -30,3 +30,7 @@ A Rust logging crate designed for multithreaded environments. `MLogger` uses mut
     println!("{}",logger.get_size().unwrap());
 
 ```
+
+## Change Log 1.0.0
+ - Added color to the formated text.
+ - Change the format text to show log id,colored verbosity,text.
